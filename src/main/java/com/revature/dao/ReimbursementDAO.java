@@ -1,5 +1,6 @@
 package com.revature.dao;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 import javax.persistence.PersistenceException;
@@ -22,4 +23,6 @@ public interface ReimbursementDAO {
 
 	
 	public abstract Reimbursement addReimbursement(int userId, AddOrEditReimbursementDTO reimbursementDto) throws PersistenceException;
+
+	public abstract Reimbursement editReimbursementStatusById(int reimbId, int userId, Timestamp resolvedTime, String status);
 }

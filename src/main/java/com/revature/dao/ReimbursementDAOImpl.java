@@ -1,6 +1,7 @@
 package com.revature.dao;
 
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 		Session session = sf.openSession();
 
 		try {
-			String hql = "Select r From Reimbursement r";
+			String hql = "From Reimbursement r ORDER BY r.status.status desc, r.submitted desc";
 			reimbursement = session.createQuery(hql).getResultList();
 			return reimbursement;
 		} finally {
@@ -53,7 +54,7 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 //		query.select(root).where(builder.equal(root.get("author"), user));
 //		UserRoles finanaceManager = session.createQuery(query).getSingleResult();
 		try {
-			String hql = "Select r FROM Reimbursement r Join r.author u WHERE u.id = :userid";
+			String hql = "SELECT r FROM Reimbursement r Join r.author u WHERE u.id = :userid ORDER BY r.status.status desc, r.submitted desc";
 			reimbursement = session.createQuery(hql).setParameter("userid", userId).getResultList();
 			return reimbursement;
 		} finally {
@@ -97,18 +98,18 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 		Session session = sf.openSession();
 		Transaction tx = session.beginTransaction();
 		try {
-			String hql = "Select r FROM Reimbursement r where r.id = :reimbursementId";
+			String hql = "FROM Reimbursement r where r.id = :reimbursementId";
 			Reimbursement reimbursement = (Reimbursement) session.createQuery(hql)
 					.setParameter("reimbursementId", reimbursementId).getSingleResult();
-			String hql2 = "Select rt FROM ReimbursementType rt WHERE rt.type = :type";
+			String hql2 = "FROM ReimbursementType rt WHERE rt.type = :type";
 			ReimbursementType reimbursementType = (ReimbursementType) session.createQuery(hql2)
 					.setParameter("type", reimbursementDto.getType()).getSingleResult();
 			reimbursement.setType(reimbursementType);
 			reimbursement.setAmount(reimbursementDto.getAmount());
 			reimbursement.setDescription(reimbursementDto.getDescription());
-			Reimbursement newReimbursement = (Reimbursement) session.merge(reimbursement);
+			session.persist(reimbursement);
 			tx.commit();
-			return newReimbursement;
+			return reimbursement;
 		} catch (PersistenceException e) {
 			tx.rollback();
 			throw new PersistenceException(e.getMessage());
@@ -124,7 +125,7 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
 		Session session = sf.openSession();
 		try {
-			String hql = "Select r FROM Reimbursement r WHERE r.id = :reimbursementId";
+			String hql = "FROM Reimbursement r WHERE r.id = :reimbursementId";
 			Reimbursement reimbursement = (Reimbursement) session.createQuery(hql).setParameter("reimbursementId", reimbursementId).getSingleResult();
 			return reimbursement;
 		} finally {
@@ -140,12 +141,12 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 		Session session = sf.openSession();
 		Transaction tx = session.beginTransaction();
 		try {
-			String hql1 = "Select rt FROM ReimbursementType rt WHERE rt.type = :type";
+			String hql1 = "FROM ReimbursementType rt WHERE rt.type = :type";
 			ReimbursementType reimbursementType = (ReimbursementType) session.createQuery(hql1)
 					.setParameter("type", reimbursementDto.getType()).getSingleResult();
-			String hql2 = "Select rs FROM ReimbursementStatus rs WHERE rs.status = 'pending'";
+			String hql2 = "FROM ReimbursementStatus rs WHERE rs.status = 'pending'";
 			ReimbursementStatus reimbursementStatus = (ReimbursementStatus) session.createQuery(hql2).getSingleResult();
-			String hql3 = "Select u FROM Users u WHERE u.id = :userid";
+			String hql3 = "FROM Users u WHERE u.id = :userid";
 			Users user = (Users) session.createQuery(hql3).setParameter("userid", userId).getSingleResult();
 			Reimbursement reimbursement = new Reimbursement(reimbursementDto.getAmount(), null, reimbursementDto.getDescription(), null);
 			reimbursement.setAuthor(user);
@@ -162,6 +163,36 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 				session.close();
 			}
 		}
+	}
+
+	@Override
+	public Reimbursement editReimbursementStatusById(int reimbId, int userId, Timestamp resolvedTime, String status) {
+		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
+		Session session = sf.openSession();
+		Transaction tx = session.beginTransaction();
+		try {
+			String hql = "FROM ReimbursementStatus rs WHERE rs.status = :status";
+			ReimbursementStatus reimbursementStatus = (ReimbursementStatus) session.createQuery(hql)
+					.setParameter("status", status).getSingleResult();
+			String hql2 = "FROM Reimbursement r WHERE r.id = :reimbursementId";
+			Reimbursement reimbursement = (Reimbursement) session.createQuery(hql2).setParameter("reimbursementId", reimbId).getSingleResult();
+			System.out.println(reimbursement);
+			String hql3 = "FROM Users u WHERE u.id = :userId";
+			Users user = (Users) session.createQuery(hql3).setParameter("userId", userId).getSingleResult();
+			reimbursement.setResolver(user);
+			reimbursement.setResolved(resolvedTime);
+			reimbursement.setStatus(reimbursementStatus);
+			session.persist(reimbursement);
+			tx.commit();
+			return reimbursement;
+		}catch(Exception e) {
+			e.printStackTrace();
+		}finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+		return null;
 	}
 
 }

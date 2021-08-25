@@ -1,5 +1,6 @@
 package com.revature.service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,12 +68,13 @@ public class ReimbursementService {
 		try {
 			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != null) {
 			int reimbId = Integer.parseInt(reimbursementId);
-			//if (reimbursementDao.getReimbursementById(reimbId) != null) {
+			if (reimbursementDao.getReimbursementById(reimbId) != null) {
 				Reimbursement reimbursement = reimbursementDao.editReimbursementById(reimbId, reimbursementDto);
+				System.out.print(reimbursement);
 				return reimbursement;
-			//} else {
-				//throw new ReimbursementNotFoundException("The user don't have a reimbursement with " + reimbursementId);
-			//}
+			} else {
+				throw new ReimbursementNotFoundException("The user don't have a reimbursement with " + reimbursementId);
+			}
 			}else {
 				throw new BadParameterException("cannot have null value for amount and type");
 			}
@@ -100,4 +102,25 @@ public class ReimbursementService {
 		}
 	}
 
-}
+	public Reimbursement editReimbursementStatusById(String reimbursementId, String userId, String status) throws ReimbursementNotFoundException, BadParameterException {
+		try {
+			String statusString = status.replaceAll("^\"|\"$", "");
+			int reimbId = Integer.parseInt(reimbursementId);
+			int uId = Integer.parseInt(userId);
+			if (reimbursementDao.getReimbursementById(reimbId) != null) {
+				long now = System.currentTimeMillis();
+				Timestamp resolvedTime = new Timestamp(now);
+				Reimbursement reimbursement = reimbursementDao.editReimbursementStatusById(reimbId, uId, resolvedTime, statusString);
+				return reimbursement;
+			} else {
+				throw new ReimbursementNotFoundException("There is no reimbursement with " + reimbursementId);
+			}
+		} catch (NumberFormatException e) {
+			throw new BadParameterException("Reimbursement id is not a valid integer.");
+		} catch (PersistenceException e) {
+			throw new PersistenceException(e.getMessage());
+		}
+	}
+	}
+
+

@@ -1,11 +1,18 @@
 package com.revature.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Blob;
 import java.sql.Timestamp;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -129,6 +136,16 @@ public class PopulateDataInDatabase {
 		Reimbursement reimbursement1 = new Reimbursement(2000.23, null, "test1 reimbursment", null);
 		Reimbursement reimbursement2 = new Reimbursement(123.45, resolveTimestamp1, "test2 reimbursment", null);
 		Reimbursement reimbursement3 = new Reimbursement(123.45, resolveTimestamp2, "apple reimbursment", null);
+		File file = new File("/Users/hai/Downloads/logo.png");
+		byte[] imageData = new byte[(int) file.length()];
+		try {
+			FileInputStream fileInputStream = new FileInputStream(file);
+		    fileInputStream.read(imageData);
+		    fileInputStream.close();
+		} catch(Exception e){
+			e.printStackTrace();
+		}
+		reimbursement1.setRecieptImage(imageData);
 		reimbursement1.setAuthor(employee1);
 		reimbursement1.setStatus(reimbStatus1);
 		reimbursement1.setType(reimbType1);

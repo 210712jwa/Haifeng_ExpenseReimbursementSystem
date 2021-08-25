@@ -43,14 +43,22 @@ public class AdminReimbursementController implements Controller {
 		HttpSession httpSession = ctx.req.getSession();
 		Users user = (Users) httpSession.getAttribute("currentUser");
 		if(user != null && user.getUserRole().getRole().equals("finance manager")) {
-			
+			String status = ctx.body();
+			String reimbursementId = ctx.pathParam("reimbursementid");
+			String userId = ctx.pathParam("userid");
+			Reimbursement reimbursement = reimbursementService.editReimbursementStatusById(reimbursementId, userId, status);
+			ctx.json(reimbursement);
+			ctx.status(200);
+		}else if(user == null){
+			ctx.json(new MessageDTO("Unauthorized action, please login"));
+			ctx.status(401);
 		}
 	};
 
 	@Override
 	public void mapEndpoints(Javalin app) {
 		app.get("/admin/:userid/reimbursement", getAllReimbursementFromAllUserHandler);
-		app.put("/admin/:userid/reimbursement", decideUserReimbursemenStatus);
+		app.put("/admin/:userid/reimbursement/:reimbursementid", decideUserReimbursemenStatus);
 	}
 
 }

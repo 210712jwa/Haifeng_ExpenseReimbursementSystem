@@ -13,6 +13,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 
 
@@ -37,8 +38,9 @@ public class Reimbursement {
 	@Column(name = "description", length = 250)
 	private String description;
 	
-	@Column(name = "receipt")
-	private Blob reciept;
+	@Column(name = "receipt_image", columnDefinition="LONGBlob")
+	@Lob
+	private byte[] recieptImage;
 	
 	@ManyToOne
 	@JoinColumn(name = "author_id", nullable = false)
@@ -65,13 +67,13 @@ public class Reimbursement {
 		super();
 	}
 
-	public Reimbursement(double amount, Timestamp resolved, String description, Blob reciept) {
+	public Reimbursement(double amount, Timestamp resolved, String description, byte[] recieptImage) {
 		super();
 		this.amount = amount;
 		this.submitted = submitTimestamp;
 		this.resolved = resolved;
 		this.description = description;
-		this.reciept = reciept;
+		this.recieptImage = recieptImage;
 	}
 
 	public int getId() {
@@ -114,12 +116,12 @@ public class Reimbursement {
 		this.description = description;
 	}
 
-	public Blob getReciept() {
-		return reciept;
+	public byte[] getRecieptImage() {
+		return recieptImage;
 	}
 
-	public void setReciept(Blob reciept) {
-		this.reciept = reciept;
+	public void setRecieptImage(byte[] recieptImage) {
+		this.recieptImage = recieptImage;
 	}
 
 	public Users getAuthor() {
@@ -154,9 +156,30 @@ public class Reimbursement {
 		this.type = type;
 	}
 
+	public long getNow() {
+		return now;
+	}
+
+	public void setNow(long now) {
+		this.now = now;
+	}
+
+	public Timestamp getSubmitTimestamp() {
+		return submitTimestamp;
+	}
+
+	public void setSubmitTimestamp(Timestamp submitTimestamp) {
+		this.submitTimestamp = submitTimestamp;
+	}
+
 	@Override
 	public int hashCode() {
-		return Objects.hash(amount, author, description, id, reciept, resolved, resolver, status, submitted, type);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(recieptImage);
+		result = prime * result + Objects.hash(amount, author, description, id, now, resolved, resolver, status,
+				submitTimestamp, submitted, type);
+		return result;
 	}
 
 	@Override
@@ -170,16 +193,20 @@ public class Reimbursement {
 		Reimbursement other = (Reimbursement) obj;
 		return Double.doubleToLongBits(amount) == Double.doubleToLongBits(other.amount)
 				&& Objects.equals(author, other.author) && Objects.equals(description, other.description)
-				&& id == other.id && Objects.equals(reciept, other.reciept) && Objects.equals(resolved, other.resolved)
-				&& Objects.equals(resolver, other.resolver) && Objects.equals(status, other.status)
+				&& id == other.id && now == other.now && Arrays.equals(recieptImage, other.recieptImage)
+				&& Objects.equals(resolved, other.resolved) && Objects.equals(resolver, other.resolver)
+				&& Objects.equals(status, other.status) && Objects.equals(submitTimestamp, other.submitTimestamp)
 				&& Objects.equals(submitted, other.submitted) && Objects.equals(type, other.type);
 	}
 
 	@Override
 	public String toString() {
 		return "Reimbursement [id=" + id + ", amount=" + amount + ", submitted=" + submitted + ", resolved=" + resolved
-				+ ", description=" + description + ", reciept=" + reciept + ", author=" + author + ", resolver="
-				+ resolver + ", status=" + status + ", type=" + type + "]";
-	}	
+				+ ", description=" + description + ", recieptImage=" + Arrays.toString(recieptImage) + ", author="
+				+ author + ", resolver=" + resolver + ", status=" + status + ", type=" + type + ", now=" + now
+				+ ", submitTimestamp=" + submitTimestamp + "]";
+	}
+
+	
 	
 }
