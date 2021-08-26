@@ -1,23 +1,24 @@
 package com.revature.dto;
 
 import java.sql.Blob;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class AddOrEditReimbursementDTO {
 	private double amount;
 	private String description;
-	private Blob recipt;
+	private byte[] reciept;
 	private String type;
 
 	public AddOrEditReimbursementDTO() {
 		super();
 	}
 
-	public AddOrEditReimbursementDTO(double amount, String description, Blob recipt, String type) {
+	public AddOrEditReimbursementDTO(double amount, String description, byte[] reciept, String type) {
 		super();
 		this.amount = amount;
 		this.description = description;
-		this.recipt = recipt;
+		this.reciept = reciept;
 		this.type = type;
 	}
 
@@ -37,12 +38,12 @@ public class AddOrEditReimbursementDTO {
 		this.description = description;
 	}
 
-	public Blob getRecipt() {
-		return recipt;
+	public byte[] getReciept() {
+		return reciept;
 	}
 
-	public void setRecipt(Blob recipt) {
-		this.recipt = recipt;
+	public void setReciept(byte[] reciept) {
+		this.reciept = reciept;
 	}
 
 	public String getType() {
@@ -55,7 +56,11 @@ public class AddOrEditReimbursementDTO {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(amount, description, recipt, type);
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(reciept);
+		result = prime * result + Objects.hash(amount, description, type);
+		return result;
 	}
 
 	@Override
@@ -68,14 +73,14 @@ public class AddOrEditReimbursementDTO {
 			return false;
 		AddOrEditReimbursementDTO other = (AddOrEditReimbursementDTO) obj;
 		return Double.doubleToLongBits(amount) == Double.doubleToLongBits(other.amount)
-				&& Objects.equals(description, other.description) && Objects.equals(recipt, other.recipt)
+				&& Objects.equals(description, other.description) && Arrays.equals(reciept, other.reciept)
 				&& Objects.equals(type, other.type);
 	}
 
 	@Override
 	public String toString() {
-		return "AddOrEditReimbursementDTO [amount=" + amount + ", description=" + description + ", recipt=" + recipt
-				+ ", type=" + type + "]";
+		return "AddOrEditReimbursementDTO [amount=" + amount + ", description=" + description + ", reciept="
+				+ Arrays.toString(reciept) + ", type=" + type + "]";
 	}
 
 }

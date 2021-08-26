@@ -6,6 +6,7 @@ import com.revature.dto.LoginDTO;
 import com.revature.exception.BadParameterException;
 import com.revature.exception.InvalidLoginException;
 import com.revature.model.Users;
+import com.revature.util.PasswordHashing;
 
 public class LoginService {
 	
@@ -15,7 +16,7 @@ public class LoginService {
 		this.userDao = new UserDAOImpl();
 	}
 
-	public Users login(LoginDTO loginDto) throws BadParameterException, InvalidLoginException {
+	public Users login(LoginDTO loginDto) throws Exception {
 		if(loginDto.getUsername().equals("") && loginDto.getPassword().equals("")) {
 			throw new BadParameterException("Username and password cannot be blank.");
 		}
@@ -25,10 +26,18 @@ public class LoginService {
 		if(loginDto.getPassword().equals("")) {
 			throw new BadParameterException("Password cannot be blank.");
 		}
+		try {
+		PasswordHashing passAuthen = PasswordHashing.getInstance();
+		String newPassword = passAuthen.getSecurePassword(loginDto.getPassword());
+		loginDto.setPassword(newPassword);
 		Users user = userDao.getUserByUsernameAndPassword(loginDto);
 		if(user == null) {
 			throw new InvalidLoginException("You provide incorrect credential when attempting to log in");
 		}
-		return user;
+			return user;
+		}catch(Exception e) {
+			e.printStackTrace();
+			throw new Exception("Login fail");
+		}
 	}
 }

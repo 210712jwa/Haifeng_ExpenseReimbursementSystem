@@ -2,17 +2,11 @@ package com.revature.util;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Blob;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.sql.Timestamp;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
 
-import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -24,8 +18,7 @@ import com.revature.model.UserRoles;
 import com.revature.model.Users;
 
 public class PopulateDataInDatabase {
-
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		populateUserRoles();
 		populateReimbursementStatus();
 		populateReimbursementTypes();
@@ -84,24 +77,24 @@ public class PopulateDataInDatabase {
 		session.close();
 	}
 	
-	private static void addSampleUsers() {
+	private static void addSampleUsers() throws NoSuchAlgorithmException, NoSuchProviderException {
 		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
 		Session session = sf.openSession();
 		Transaction tx = session.beginTransaction();
-		
-		Users financeManagerUser1 = new Users("Haifeng", "Zhu", "haifeng.zhu@revature.net", "someUsername", "somePassword");
-//		CriteriaBuilder builder = session.getCriteriaBuilder();
-//		CriteriaQuery<UserRoles> query = builder.createQuery(UserRoles.class);
-//		Root<UserRoles> root = query.from(UserRoles.class);
-//		query.select(root).where(builder.equal(root.get("id"), 1));
-//		UserRoles finanaceManager = session.createQuery(query).getSingleResult();
+		String realAdminPassword = "somePassword";
+		PasswordHashing passAuthen = PasswordHashing.getInstance();
+		String adminPassword = passAuthen.getSecurePassword(realAdminPassword);
+		Users financeManagerUser1 = new Users("Haifeng", "Zhu", "haifeng.zhu@revature.net", "someUsername", adminPassword);
 		UserRoles finanaceManager = (UserRoles) session.createQuery("FROM UserRoles ur WHERE ur.id = 1").getSingleResult();
 		financeManagerUser1.setUserRole(finanaceManager);
-		
-		Users employee1 = new Users("test1", "testing", "test@test.com", "test123", "12321");
+		String realEmployee1Password = "12321";
+		String employee1Password = passAuthen.getSecurePassword(realEmployee1Password);
+		Users employee1 = new Users("Hello", "Hey", "test@test.com", "test123", employee1Password);
 		UserRoles employee = (UserRoles) session.createQuery("FROM UserRoles ur WHERE ur.id = 2").getSingleResult();
 		employee1.setUserRole(employee);
-		Users employee2 = new Users("Apple", "Banana", "apba@fruit.com", "apple1", "banana2");
+		String realEmployee2Password = "banna2";
+		String employee2Password = passAuthen.getSecurePassword(realEmployee2Password);
+		Users employee2 = new Users("Apple", "Banana", "apba@fruit.com", "apple1", employee2Password);
 		employee2.setUserRole(employee);
 		
 		session.persist(financeManagerUser1);
@@ -129,23 +122,22 @@ public class PopulateDataInDatabase {
 				.getSingleResult();
 		ReimbursementType reimbType2 = (ReimbursementType) session.createQuery("FROM ReimbursementType rt WHERE rt.type='food'")
 				.getSingleResult();
-		
         Timestamp resolveTimestamp1 = Timestamp.valueOf("2020-10-22 19:30:23.168");
         Timestamp resolveTimestamp2 = Timestamp.valueOf("2020-11-22 16:32:26.238");
         
 		Reimbursement reimbursement1 = new Reimbursement(2000.23, null, "test1 reimbursment", null);
 		Reimbursement reimbursement2 = new Reimbursement(123.45, resolveTimestamp1, "test2 reimbursment", null);
 		Reimbursement reimbursement3 = new Reimbursement(123.45, resolveTimestamp2, "apple reimbursment", null);
-		File file = new File("/Users/hai/Downloads/logo.png");
-		byte[] imageData = new byte[(int) file.length()];
-		try {
-			FileInputStream fileInputStream = new FileInputStream(file);
-		    fileInputStream.read(imageData);
-		    fileInputStream.close();
-		} catch(Exception e){
-			e.printStackTrace();
-		}
-		reimbursement1.setRecieptImage(imageData);
+//		File file = new File("/Users/hai/Downloads/logo.png");
+//		byte[] imageData = new byte[(int) file.length()];
+//		try {
+//			FileInputStream fileInputStream = new FileInputStream(file);
+//		    fileInputStream.read(imageData);
+//		    fileInputStream.close();
+//		} catch(Exception e){
+//			e.printStackTrace();
+//		}
+//		reimbursement1.setRecieptImage(imageData);
 		reimbursement1.setAuthor(employee1);
 		reimbursement1.setStatus(reimbStatus1);
 		reimbursement1.setType(reimbType1);

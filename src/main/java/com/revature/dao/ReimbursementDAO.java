@@ -25,4 +25,6 @@ public interface ReimbursementDAO {
 	public abstract Reimbursement addReimbursement(int userId, AddOrEditReimbursementDTO reimbursementDto) throws PersistenceException;
 
 	public abstract Reimbursement editReimbursementStatusById(int reimbId, int userId, Timestamp resolvedTime, String status);
+
+	public abstract List<Reimbursement> filterReimbursementByStatus(String status);
 }

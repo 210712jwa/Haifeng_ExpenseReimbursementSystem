@@ -121,6 +121,15 @@ public class ReimbursementService {
 			throw new PersistenceException(e.getMessage());
 		}
 	}
+
+	public List<Reimbursement> filterReimbursementByStatus(String status) throws ReimbursementNotFoundException {
+		List<Reimbursement> reimbursement = new ArrayList<>();
+		reimbursement = reimbursementDao.filterReimbursementByStatus(status);
+		if (reimbursement == null) {
+			throw new ReimbursementNotFoundException("No reimbursement in the database");
+		}
+		return reimbursement;
+	}
 	}
 
 

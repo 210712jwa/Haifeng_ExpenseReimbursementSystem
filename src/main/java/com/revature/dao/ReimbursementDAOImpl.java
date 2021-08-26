@@ -47,12 +47,6 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 		List<Reimbursement> reimbursement = new ArrayList<>();
 		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
 		Session session = sf.openSession();
-		// CriteriaBuilder builder = session.getCriteriaBuilder();
-//		CriteriaQuery<Reimbursement> query = builder.createQuery(Reimbursement.class);
-//		Root<Reimbursement> root = query.from(Reimbursement.class);
-//		Join<Reimbursement, Users> reimb = root.join("author", JoinType.INNER);
-//		query.select(root).where(builder.equal(root.get("author"), user));
-//		UserRoles finanaceManager = session.createQuery(query).getSingleResult();
 		try {
 			String hql = "SELECT r FROM Reimbursement r Join r.author u WHERE u.id = :userid ORDER BY r.status.status desc, r.submitted desc";
 			reimbursement = session.createQuery(hql).setParameter("userid", userId).getResultList();
@@ -193,6 +187,22 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public List<Reimbursement> filterReimbursementByStatus(String status) {
+		List<Reimbursement> reimbursement = new ArrayList<>();
+		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
+		Session session = sf.openSession();
+		try {
+			String hql = "FROM Reimbursement r WHERE r.status.status = :status";
+			reimbursement = session.createQuery(hql).setParameter("status", status).getResultList();
+			return reimbursement;
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
 	}
 
 }

@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../../getting-started/docs"
+		},
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "vs_workspace"
+	}
+}
