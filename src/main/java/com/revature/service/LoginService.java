@@ -41,7 +41,6 @@ public class LoginService {
 			}
 			return user;
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new Exception("Login fail");
 		}
 	}

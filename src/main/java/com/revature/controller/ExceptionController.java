@@ -1,5 +1,8 @@
 package com.revature.controller;
 
+import javax.persistence.PersistenceException;
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,23 +32,35 @@ public class ExceptionController implements Controller {
 		ctx.json(new MessageDTO(e.getMessage()));
 	};
 
-	private ExceptionHandler<DatabaseException> DatabaseExceptionHandler = (e, ctx) -> {
+
+	private ExceptionHandler<PersistenceException> persistenceExceptionHandler = (e, ctx) ->{
 		logger.info("Exception Occurred: Exception message is " + e.getMessage());
+
 		ctx.status(500);
 		ctx.json(new MessageDTO(e.getMessage()));
 	};
+	
+	private ExceptionHandler<IOException> IOExceptionHandler = (e, ctx) ->{
+		logger.info("Exception Occurred: Exception message is " + e.getMessage());
 
+		ctx.status(400);
+		ctx.json(new MessageDTO(e.getMessage()));
+	};
+	
 	private ExceptionHandler<Exception> ExceptionHandler = (e, ctx) -> {
 		logger.info("Exception Occurred: Exception message is " + e.getMessage());
 		ctx.status(500);
 		ctx.json(new MessageDTO(e.getMessage()));
 	};
+	
+	
 
 	@Override
 	public void mapEndpoints(Javalin app) {
 		app.exception(BadParameterException.class, badParameterExceptionHandler);
 		app.exception(InvalidLoginException.class, invalidLoginExceptionHandler);
-		app.exception(DatabaseException.class, DatabaseExceptionHandler);
+		app.exception(IOException.class, IOExceptionHandler);
+		app.exception(PersistenceException.class, persistenceExceptionHandler);
 		app.exception(Exception.class, ExceptionHandler);
 	}
 

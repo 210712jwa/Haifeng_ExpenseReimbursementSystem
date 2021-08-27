@@ -32,7 +32,7 @@ public class ReimbursementController implements Controller {
 			String currentUserId = Integer.toString(user.getId());
 			if (userId.equals(currentUserId) && user.getUserRole().getRole().equals("employee")) {
 				List<Reimbursement> reimbursement = new ArrayList<>();
-				reimbursement = reimbursementService.getReimbursementByUserId(userId);
+				reimbursement = reimbursementService.getAllReimbursementByUserId(userId);
 				ctx.json(reimbursement);
 				ctx.status(200);
 			} else if (user != null && userId.equals(currentUserId)

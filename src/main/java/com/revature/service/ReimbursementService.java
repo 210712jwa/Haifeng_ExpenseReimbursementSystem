@@ -7,7 +7,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.PersistenceException;
 import com.revature.dao.ReimbursementDAO;
 import com.revature.dao.ReimbursementDAOImpl;
 import com.revature.dto.AddOrEditReimbursementDTO;
@@ -39,7 +38,7 @@ public class ReimbursementService {
 		return reimbursement;
 	}
 
-	public List<Reimbursement> getReimbursementByUserId(String userId)
+	public List<Reimbursement> getAllReimbursementByUserId(String userId)
 			throws ReimbursementNotFoundException, BadParameterException {
 		List<Reimbursement> reimbursement = new ArrayList<>();
 		try {
@@ -54,8 +53,7 @@ public class ReimbursementService {
 		}
 	}
 
-	public void deleteReimbursementById(String reimbursementId)
-			throws Exception {
+	public void deleteReimbursementById(String reimbursementId) throws Exception {
 		try {
 			int reimbId = Integer.parseInt(reimbursementId);
 			if (reimbursementDao.getReimbursementById(reimbId) != null) {
@@ -65,19 +63,16 @@ public class ReimbursementService {
 			}
 		} catch (NumberFormatException e) {
 			throw new BadParameterException("Reimbursement id is not a valid integer.");
-		} catch (PersistenceException e) {
-			throw new PersistenceException("Something wrong with the hibernate.");
 		}
 	}
 
 	public Reimbursement editReimbursementById(String reimbursementId, AddOrEditReimbursementDTO reimbursementDto)
 			throws Exception {
 		try {
-			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != null) {
+			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != "") {
 				int reimbId = Integer.parseInt(reimbursementId);
 				if (reimbursementDao.getReimbursementById(reimbId) != null) {
 					Reimbursement reimbursement = reimbursementDao.editReimbursementById(reimbId, reimbursementDto);
-					System.out.print(reimbursement);
 					return reimbursement;
 				} else {
 					throw new ReimbursementNotFoundException("The user don't have a reimbursement with " + reimbursementId);
@@ -87,13 +82,10 @@ public class ReimbursementService {
 			}
 		} catch (NumberFormatException e) {
 			throw new BadParameterException("Reimbursement id is not a valid integer.");
-		} catch (PersistenceException e) {
-			throw new PersistenceException("Something wrong with hibernate");
 		}
 	}
 
-	public Reimbursement addReimbursement(String userId, AddOrEditReimbursementDTO reimbursementDto)
-			throws Exception {
+	public Reimbursement addReimbursement(String userId, AddOrEditReimbursementDTO reimbursementDto) throws Exception {
 		try {
 			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != null) {
 				int uId = Integer.parseInt(userId);
@@ -104,9 +96,7 @@ public class ReimbursementService {
 			}
 		} catch (NumberFormatException e) {
 			throw new BadParameterException("Reimbursement id is not a valid integer.");
-		} catch (PersistenceException e) {
-			throw new PersistenceException("Something wrong with hibernate.");
-		}
+		} 
 	}
 
 	public Reimbursement editReimbursementStatusById(String reimbursementId, String userId, String status)
@@ -126,16 +116,14 @@ public class ReimbursementService {
 			}
 		} catch (NumberFormatException e) {
 			throw new BadParameterException("Reimbursement id is not a valid integer.");
-		} catch (PersistenceException e) {
-			throw new PersistenceException(e.getMessage());
-		}
+		} 
 	}
 
 	public List<Reimbursement> filterReimbursementByStatus(String status) throws ReimbursementNotFoundException {
 		List<Reimbursement> reimbursement = new ArrayList<>();
 		reimbursement = reimbursementDao.filterReimbursementByStatus(status);
 		if (reimbursement == null) {
-			throw new ReimbursementNotFoundException("No reimbursement in the database");
+			throw new ReimbursementNotFoundException("No sreimbursement in the database");
 		}
 		return reimbursement;
 	}
@@ -157,8 +145,6 @@ public class ReimbursementService {
 			return reimbursement;
 		} catch (IOException e) {
 			throw new Exception("File not accepted.");
-		} catch (Exception e) {
-			throw new Exception("Add receipt fail.");
-		}
+		} 
 	}
 }

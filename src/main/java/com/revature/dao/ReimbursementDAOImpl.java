@@ -105,6 +105,7 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			tx.rollback();
 			throw new PersistenceException("Something wrong with hibernate");
 		}catch(Exception e) {
+			tx.rollback();
 			throw new Exception("Fail edit reimbursemet Dao");
 		} finally {
 			if (session != null) {
