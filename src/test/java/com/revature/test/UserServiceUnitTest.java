@@ -40,7 +40,7 @@ public class UserServiceUnitTest {
 	}
 
 	@Test
-	public void test() {
+	public void test_login_positive() {
 		fail("Not yet implemented");
 	}
 

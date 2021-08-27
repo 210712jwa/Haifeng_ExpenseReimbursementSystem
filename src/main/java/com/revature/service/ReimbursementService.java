@@ -87,7 +87,7 @@ public class ReimbursementService {
 
 	public Reimbursement addReimbursement(String userId, AddOrEditReimbursementDTO reimbursementDto) throws Exception {
 		try {
-			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != null) {
+			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != "") {
 				int uId = Integer.parseInt(userId);
 				Reimbursement reimbursement = reimbursementDao.addReimbursement(uId, reimbursementDto);
 				return reimbursement;
@@ -112,10 +112,10 @@ public class ReimbursementService {
 						statusString);
 				return reimbursement;
 			} else {
-				throw new ReimbursementNotFoundException("There is no reimbursement with " + reimbursementId);
+				throw new ReimbursementNotFoundException("There is no reimbursement with id " + reimbursementId);
 			}
 		} catch (NumberFormatException e) {
-			throw new BadParameterException("Reimbursement id is not a valid integer.");
+			throw new BadParameterException("Reimbursement id or user id is not a valid integer.");
 		} 
 	}
 
@@ -123,7 +123,7 @@ public class ReimbursementService {
 		List<Reimbursement> reimbursement = new ArrayList<>();
 		reimbursement = reimbursementDao.filterReimbursementByStatus(status);
 		if (reimbursement == null) {
-			throw new ReimbursementNotFoundException("No sreimbursement in the database");
+			throw new ReimbursementNotFoundException("No such reimbursement in the database");
 		}
 		return reimbursement;
 	}

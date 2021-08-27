@@ -59,20 +59,30 @@ public class ReimbursementServiceUnitTest {
 		employee = new UserRoles("employee");
 		financeManager = new UserRoles("finance manager");
 		pending = new ReimbursementStatus("pending");
+		pending.setId(1);
 		approved = new ReimbursementStatus("approved");
+		approved.setId(2);
 		denied = new ReimbursementStatus("denied");
+		approved.setId(3);
 		lodging = new ReimbursementType("lodging");
+		lodging.setId(1);
 		travel = new ReimbursementType("travel");
+		travel.setId(2);
 		food = new ReimbursementType("food");
+		food.setId(3);
 		other = new ReimbursementType("other");
+		other.setId(4);
 		resolveTimestamp1 = Timestamp.valueOf("2020-10-22 19:30:23.168");
 		resolveTimestamp2 = Timestamp.valueOf("2020-11-22 16:32:26.238");
 		user = new Users("userFirst", "userLast", "userEmail@email.com", "userUsername", "userPassword");
 		user.setUserRole(employee);
+		user.setId(2);
 		user2 = new Users("userFirst2", "userLast2", "userEmail@email.com2", "userUsername2", "userPassword2");
 		user2.setUserRole(employee);
+		user.setId(3);
 		admin = new Users("adminFirst", "adminLast", "adminEmail@email.com", "adminUsername", "adminPassword");
 		admin.setUserRole(financeManager);
+		user.setId(1);
 	}
 
 	@BeforeClass
@@ -197,7 +207,6 @@ public class ReimbursementServiceUnitTest {
 		reimbursement1.setStatus(approved);
 		when(reimbursementDao.getReimbursementById(eq(10))).thenReturn(reimbursement1);
 		Mockito.doNothing().when(reimbursementDao).deleteReimbursementById(10);
-		;
 		reimbursementService.deleteReimbursementById("10");
 		Mockito.verify(reimbursementDao).deleteReimbursementById(10);
 	}
@@ -250,14 +259,28 @@ public class ReimbursementServiceUnitTest {
 	@Test
 	public void test_edit_reimbursement_by_id_positive() throws Exception {
 		AddOrEditReimbursementDTO reimbDto = new AddOrEditReimbursementDTO(100.23, "hello", null, "lodging");
-		Reimbursement reimbursement1 = new Reimbursement(100.23, resolveTimestamp1, "hello", null);
+		Reimbursement reimbursement1 = new Reimbursement(2000, null, "hey", null);
+		reimbursement1.setId(10);
 		reimbursement1.setAuthor(user);
 		reimbursement1.setResolver(admin);
-		reimbursement1.setType(lodging);
+		reimbursement1.setType(travel);
 		reimbursement1.setStatus(approved);
 		when(reimbursementDao.getReimbursementById(eq(10))).thenReturn(reimbursement1);
+		
+		Reimbursement newReimb = new Reimbursement(reimbDto.getAmount(), null, reimbDto.getDescription(), null);
+		newReimb.setId(10);
+		newReimb.setAuthor(user);
+		newReimb.setType(lodging);
+		
+		when(reimbursementDao.editReimbursementById(eq(10),eq(reimbDto))).thenReturn(newReimb);
 		Reimbursement actual = reimbursementService.editReimbursementById("10", reimbDto);
-		assertEquals(actual, reimbursement1);
+		
+		Reimbursement expectReimb = new Reimbursement(100.23, null, "hello", null);
+		expectReimb.setId(10);
+		expectReimb.setAuthor(user);
+		expectReimb.setType(lodging);
+
+		assertEquals(actual, expectReimb);
 	}
 	
 	@Test
@@ -314,13 +337,191 @@ public class ReimbursementServiceUnitTest {
 			assertEquals(e.getMessage(), "The user don't have a reimbursement with 10");
 		}
 	}
-//	
-//	@Test
-//	public void test_add_reimbursement_positive() throws Exception {
-//		AddOrEditReimbursementDTO reimbDto = new AddOrEditReimbursementDTO(100.23, "hello", null, "lodging");
-//		when(reimbursementDao.addReimbursement(eq(10), any())).thenReturn())
-//		reimbursementService.addReimbursement("10", reimbDto);
-//		
-//	}
+	
+	@Test
+	public void test_add_reimbursement_positive() throws Exception {
+		AddOrEditReimbursementDTO reimbDto = new AddOrEditReimbursementDTO(100.23, "hello", null, "lodging");
+		Reimbursement reimbursementMock = new Reimbursement();
+		reimbursementMock.setAmount(reimbDto.getAmount());
+		reimbursementMock.setDescription(reimbDto.getDescription());
+		reimbursementMock.setType(lodging);
+		when(reimbursementDao.addReimbursement(eq(10), reimbDto)).thenReturn(reimbursementMock);
+		
+		Reimbursement actual = reimbursementService.addReimbursement("10", reimbDto);
+		Reimbursement expected = new Reimbursement();
+		expected.setAmount(100.23);
+		expected.setDescription("hello");
+		expected.setType(lodging);
+		
+		assertEquals(actual, expected);
+		
+	}
+	
+	@Test
+	public void test_add_reimbursement_type_null() throws Exception {
+		try {
+			AddOrEditReimbursementDTO reimbDto = new AddOrEditReimbursementDTO(102, "hello", null, "");
+			reimbursementService.addReimbursement("10", reimbDto);
+			fail();
+		}catch(BadParameterException e) {
+			assertEquals(e.getMessage(), "cannot have null value for amount and type");
+		}
+	}
+	
+	@Test
+	public void test_add_reimbursement_id_amount_null() throws Exception {
+		try {
+			AddOrEditReimbursementDTO reimbDto = new AddOrEditReimbursementDTO(0, "hello", null, "travel");
+			reimbursementService.addReimbursement("10", reimbDto);
+			fail();
+		}catch(BadParameterException e) {
+			assertEquals(e.getMessage(), "cannot have null value for amount and type");
+		}
+	}
+	
+	@Test
+	public void test_add_reimbursement_id_null() throws Exception {
+		try {
+			AddOrEditReimbursementDTO reimbDto = new AddOrEditReimbursementDTO(100, "hello", null, "travel");
+			reimbursementService.addReimbursement("", reimbDto);
+			fail();
+		}catch(BadParameterException e) {
+			assertEquals(e.getMessage(), "Reimbursement id is not a valid integer.");
+		}
+	}
+	
+	@Test
+	public void test_add_reimbursement_id_string() throws Exception {
+		try {
+			AddOrEditReimbursementDTO reimbDto = new AddOrEditReimbursementDTO(100, "hello", null, "travel");
+			reimbursementService.addReimbursement("waw", reimbDto);
+			fail();
+		}catch(BadParameterException e) {
+			assertEquals(e.getMessage(), "Reimbursement id is not a valid integer.");
+		}
+	}
+	
+	@Test
+	public void test_edit_reimbursement_status_by_id_positive() throws Exception {
+			Reimbursement reimbursementMock = new Reimbursement(100, resolveTimestamp1 ,"hello", null);
+			reimbursementMock.setId(10);
+			reimbursementMock.setAuthor(user);
+			reimbursementMock.setResolver(admin);
+			reimbursementMock.setStatus(approved);
+			
+			when(reimbursementDao.getReimbursementById(eq(10))).thenReturn(reimbursementMock);
+			when(reimbursementDao.editReimbursementStatusById(eq(10), eq(1), resolveTimestamp1, eq("approved"))).thenReturn(reimbursementMock);
+		
+			Reimbursement actual = reimbursementService.editReimbursementStatusById("10", "1", "approved");
+			Reimbursement reimbursementExpected = new Reimbursement(100, resolveTimestamp1 ,"hello", null);
+			reimbursementExpected.setId(10);
+			reimbursementExpected.setAuthor(user);
+			reimbursementExpected.setResolver(admin);
+			reimbursementExpected.setStatus(approved);
+			
+			assertEquals(actual, reimbursementExpected);
+	}
+	
+	@Test
+	public void test_edit_reimbursement_status_id_string() throws Exception {
+		try {
+		
+			reimbursementService.editReimbursementStatusById("dw", "1", "approved");
+			fail();
+		}catch(BadParameterException e) {
+			assertEquals(e.getMessage(), "Reimbursement id or user id is not a valid integer.");
+		}
+	}
+	
+	@Test
+	public void test_edit_reimbursement_status_id_null() throws Exception {
+		try {
+		
+			reimbursementService.editReimbursementStatusById("", "1", "approved");
+			fail();
+		}catch(BadParameterException e) {
+			assertEquals(e.getMessage(), "Reimbursement id or user id is not a valid integer.");
+		}
+	}
+	
+	@Test
+	public void test_edit_reimbursement_status_user_id_null() throws Exception {
+		try {
+		
+			reimbursementService.editReimbursementStatusById("10", "", "approved");
+			fail();
+		}catch(BadParameterException e) {
+			assertEquals(e.getMessage(), "Reimbursement id or user id is not a valid integer.");
+		}
+	}
+	
+	@Test
+	public void test_edit_reimbursement_status_user_id_string() throws Exception {
+		try {
+		
+			reimbursementService.editReimbursementStatusById("10", "doa", "approved");
+			fail();
+		}catch(BadParameterException e) {
+			assertEquals(e.getMessage(), "Reimbursement id or user id is not a valid integer.");
+		}
+	}
+	
+	@Test
+	public void test_edit_reimbursement_not_exist() throws Exception {
+		try {
+			reimbursementService.editReimbursementStatusById("10", "2", "approved");
+			fail();
+		}catch(ReimbursementNotFoundException e) {
+			assertEquals(e.getMessage(), "There is no reimbursement with id 10");
+		}
+	}
+	
+	@Test
+	public void test_filter_reimbursement() throws ReimbursementNotFoundException {
+		Reimbursement reimbursement1 = new Reimbursement(1234.56, resolveTimestamp1, "tasty food", null);
+		reimbursement1.setAuthor(user);
+		reimbursement1.setResolver(admin);
+		reimbursement1.setType(food);
+		reimbursement1.setStatus(denied);
+		Reimbursement reimbursement2 = new Reimbursement(345, resolveTimestamp2, "best travel", null);
+		reimbursement2.setAuthor(user2);
+		reimbursement2.setResolver(admin);
+		reimbursement2.setType(travel);
+		reimbursement2.setStatus(denied);
+		Reimbursement reimbursement3 = new Reimbursement(225, resolveTimestamp2, "best lodging", null);
+		reimbursement3.setAuthor(user);
+		reimbursement3.setType(lodging);
+		reimbursement3.setStatus(denied);
+
+		reimbursementArrayMock.add(reimbursement1);
+		reimbursementArrayMock.add(reimbursement2);
+		reimbursementArrayMock.add(reimbursement3);
+		
+		when(reimbursementDao.filterReimbursementByStatus(eq("denied"))).thenReturn(reimbursementArrayMock);
+
+		List<Reimbursement> actual = reimbursementService.filterReimbursementByStatus("denied");
+		reimbursementArrayExpected.add(reimbursement1);
+		reimbursementArrayExpected.add(reimbursement2);
+		reimbursementArrayExpected.add(reimbursement3);
+
+		assertEquals(actual, reimbursementArrayExpected);
+		
+	}
+	
+	@Test
+	public void test_filter_reimbursement_not_exist() {
+		
+		try {
+			when(reimbursementDao.filterReimbursementByStatus(eq("denied"))).thenReturn(null);
+			List<Reimbursement> actual = reimbursementService.filterReimbursementByStatus("denied");
+		}catch(ReimbursementNotFoundException e) {
+			assertEquals("No such reimbursement in the database", e.getMessage());
+		}
+		
+	}
+	
+	
+
+	
 
 }
