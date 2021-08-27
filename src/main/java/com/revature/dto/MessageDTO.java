@@ -3,7 +3,7 @@ package com.revature.dto;
 import java.util.Objects;
 
 public class MessageDTO {
-	
+
 	private String message;
 
 	public MessageDTO() {
@@ -44,5 +44,5 @@ public class MessageDTO {
 	public String toString() {
 		return "messageDTO [message=" + message + "]";
 	}
-	
+
 }

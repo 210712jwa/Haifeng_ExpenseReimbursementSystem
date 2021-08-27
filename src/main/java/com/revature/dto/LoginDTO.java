@@ -6,7 +6,7 @@ public class LoginDTO {
 
 	private String username;
 	private String password;
-	
+
 	public LoginDTO() {
 		super();
 	}
@@ -16,7 +16,7 @@ public class LoginDTO {
 		this.username = username;
 		this.password = password;
 	}
-	
+
 	public String getUsername() {
 		return username;
 	}
@@ -54,5 +54,5 @@ public class LoginDTO {
 	public String toString() {
 		return "LoginController [username=" + username + ", password=" + password + "]";
 	}
-	
+
 }

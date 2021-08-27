@@ -4,6 +4,7 @@ let submitButton = document.getElementById('submit');
 let amountSubmit = document.getElementById('amountInput');
 let typeSubmit = document.getElementById('typeFormControlSelect1');
 let descriptionSubmit = document.getElementById('descirptionFormControlTextarea1');
+let postButton = document.getElementById('post');
 
 function onLoad(event) {
     fetch("http://127.0.0.1:7000/currentUser", {
@@ -54,6 +55,10 @@ function submit(event) {
         'type': typeSubmit.value,
         'description': descriptionSubmit.value
     }
+    let formData = new FormData();
+    var fileInput = document.getElementById('fileUpload');
+    var file = fileInput.files[0]
+    formData.append('reciept', file);
 
     fetch("http://127.0.0.1:7000/currentUser", {
         method: "GET",
@@ -67,7 +72,6 @@ function submit(event) {
     }).catch((error) => {
         console.log(error);
     }).then((user) => {
-        console.log(user.id);
         return fetch(`http://127.0.0.1:7000/user/${user.id}/reimbursement`, {
             method: "POST",
             credentials: "include",
@@ -77,12 +81,31 @@ function submit(event) {
             body: JSON.stringify(submitValue)
         });
     }).then((respond) => {
+        if (respond.status === 200 && file !== undefined) {
+            return respond.json();
+        } else {
+            location.reload();
+        }
+    }).then((reimbursement) => {
+        return fetch(`http://127.0.0.1:7000/user/${reimbursement.author.id}/reimbursement/${reimbursement.id}/reciept`, {
+            method: "PUT",
+            credentials: "include",
+            body: formData
+        });
+    }).then((respond) => {
         if (respond.status === 200) {
-            location.reload();;
+            location.reload();
         }
     }).catch((error) => {
         console.log(error);
     })
+}
+
+function previewImage() {
+    $(imageModalCenter).modal('toggle');
+    let src = $(this).attr('src');
+    let imageView = document.getElementById('imgid');
+    imageView.src = src;
 }
 
 function editRow() {
@@ -99,8 +122,6 @@ function editRow() {
         amountChange.value = reimbursementAmount2;
         typeChange.value = reimbursementType2;
         descriptionChange.value = reimbursementDesc2;
-        var imgFile = document.getElementById('reimbursementFormControlFile1');
-        var file = imgFile.files[0];
         var change = "<button class='btn btn-primary' id='change'>Change</button>";
         var deleteReimb = "<button class='btn btn-danger' id='deleteReimb'>Delete</button>";
         document.getElementById("submit").style.visibility = 'hidden';
@@ -112,6 +133,11 @@ function editRow() {
                 'type': typeChange.value,
                 'description': descriptionChange.value,
             }
+            let formData = new FormData();
+            var fileInput = document.getElementById('fileUpload');
+            var file = fileInput.files[0]
+            formData.append('reciept', file);
+
             fetch("http://127.0.0.1:7000/currentUser", {
                 method: "GET",
                 credentials: "include"
@@ -133,9 +159,23 @@ function editRow() {
                     body: JSON.stringify(changeValue)
                 });
             }).then((respond) => {
+                if (respond.status === 200 && file !== undefined) {
+                    return respond.json();
+                } else {
+                    location.reload();
+                }
+            }).then((reimbursement) => {
+                return fetch(`http://127.0.0.1:7000/user/${reimbursement.author.id}/reimbursement/${reimbursement.id}/reciept`, {
+                    method: "PUT",
+                    credentials: "include",
+                    body: formData
+                });
+            }).then((respond) => {
                 if (respond.status === 200) {
                     location.reload();
                 }
+            }).catch((error) => {
+                console.log(error);
             })
         });
         let deleteButton = document.getElementById('deleteReimb');
@@ -166,6 +206,7 @@ function editRow() {
 
 function populateReimbursements(reimbursementArray) {
     let tbody = document.querySelector('#reimbursement tbody');
+    var i;
     for (const reimbursement of reimbursementArray) {
 
         let tr = document.createElement('tr');
@@ -193,14 +234,17 @@ function populateReimbursements(reimbursementArray) {
         let reimbursementResolverTd = document.createElement('td');
         if (reimbursement?.resolver?.firstName) {
             if (reimbursement?.resolver?.lastName) {
-            reimbursementResolverTd.innerHTML = reimbursement.resolver.firstName + ' ' +reimbursement.resolver.lastName ;
+                reimbursementResolverTd.innerHTML = reimbursement.resolver.firstName + ' ' + reimbursement.resolver.lastName;
             }
         }
 
-
         let reimbursementRecieptTd = document.createElement('td');
-        if(reimbursement?.reciept){
-            reimbursementRecieptTd.innerHTML = reimbursement.reciept;
+        let reimbursementImage = document.createElement('img');
+        reimbursementImage.style.width = "50px";
+        reimbursementImage.id = `itemPreview_${i}`;
+        if (reimbursement.recieptImage !== null) {
+            reimbursementImage.src = "data:image/png;base64," + reimbursement.recieptImage;
+            reimbursementRecieptTd.appendChild(reimbursementImage);
         }
 
         let reimbursementStatusTd = document.createElement('td');
@@ -212,7 +256,9 @@ function populateReimbursements(reimbursementArray) {
         } else if (reimbursement.status.status === "approved") {
             reimbursementStatusTd.style.color = "green";
         }
+        i++;
 
+        reimbursementImage.addEventListener('mousedown', previewImage);
 
         tr.addEventListener('click', editRow);
 
@@ -230,9 +276,13 @@ function populateReimbursements(reimbursementArray) {
     }
 }
 
+function clearInput() {
+    amountSubmit.value = '';
+    descriptionSubmit.value = '';
+}
 
 
-
+postButton.addEventListener('click', clearInput);
 submitButton.addEventListener('click', submit);
 logoutButton.addEventListener("click", logout);
 window.addEventListener('load', onLoad);

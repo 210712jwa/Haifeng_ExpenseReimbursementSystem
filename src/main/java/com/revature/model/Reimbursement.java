@@ -16,52 +16,51 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 
-
 @Entity
 @Table(name = "reimbursement")
 public class Reimbursement {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "reimb_id")
 	private int id;
-	
+
 	@Column(name = "amount", nullable = false, columnDefinition = "Decimal(30,2)")
 	private double amount;
-	
+
 	@Column(name = "submitted_time", nullable = false)
 	private Timestamp submitted;
-	
+
 	@Column(name = "resolved_time")
 	private Timestamp resolved;
-	
+
 	@Column(name = "description", length = 250)
 	private String description;
-	
-	@Column(name = "receipt_image", columnDefinition="LONGBlob")
+
+	@Column(name = "receipt_image", columnDefinition = "LONGBlob")
 	@Lob
 	private byte[] recieptImage;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "author_id", nullable = false)
 	private Users author;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "resolver_id")
 	private Users resolver;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "reimb_status_id", nullable = false)
 	private ReimbursementStatus status;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "reimb_type_id", nullable = false)
 	private ReimbursementType type;
-	
+
 	@Transient
 	private long now = System.currentTimeMillis();
 	@Transient
-    private Timestamp submitTimestamp = new Timestamp(now);
+	private Timestamp submitTimestamp = new Timestamp(now);
 
 	public Reimbursement() {
 		super();
@@ -207,6 +206,4 @@ public class Reimbursement {
 				+ ", submitTimestamp=" + submitTimestamp + "]";
 	}
 
-	
-	
 }

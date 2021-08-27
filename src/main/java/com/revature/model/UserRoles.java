@@ -9,16 +9,15 @@ import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 
-
 @Entity
 @Table(name = "user_roles")
 public class UserRoles {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "role_id")
 	private int id;
-	
+
 	@Column(name = "user_role", length = 20, nullable = false, unique = true)
 	private String role;
 

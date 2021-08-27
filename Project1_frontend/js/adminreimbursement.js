@@ -51,8 +51,8 @@ function getCookie(cname) {
     return "";
 }
 
-function showAll(){
-    document.cookie = "cookieloaded=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/" 
+function showAll() {
+    document.cookie = "cookieloaded=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/"
     location.reload();
 }
 
@@ -103,9 +103,8 @@ function decision(e) {
     })
 };
 
-function approvedFilter(event) {
+function statusFilter(event) {
     var filterValue = $(this).text();
-    console.log(filterValue);
     fetch("http://127.0.0.1:7000/currentUser", {
         method: "GET",
         credentials: "include"
@@ -116,7 +115,6 @@ function approvedFilter(event) {
             return response.json();
         }
     }).then((user) => {
-        console.log(2);
         return fetch(`http://127.0.0.1:7000/admin/${user.id}/reimbursement?status=${filterValue}`, {
             method: "Get",
             credentials: "include"
@@ -126,10 +124,10 @@ function approvedFilter(event) {
             return response.json();
         }
     }).then((reimbursement) => {
-        if(Object.keys(reimbursement).length !== 0){
+        if (Object.keys(reimbursement).length !== 0) {
             clearTable();
             populateReimbursements(reimbursement);
-        }else{
+        } else {
             clearTable();
         }
     }).catch((error) => {
@@ -137,11 +135,18 @@ function approvedFilter(event) {
     })
 }
 
-function clearTable(){
+function clearTable() {
     let tbody = document.querySelector('#reimbursement-table tbody');
     tbody.innerHTML = '';
 }
 
+
+function previewImage() {
+    $(imageModalCenter).modal('toggle');
+    let src = $(this).attr('src');
+    let imageView = document.getElementById('imgid');
+    imageView.src = src;
+}
 
 
 function populateReimbursements(reimbursementArray) {
@@ -170,14 +175,18 @@ function populateReimbursements(reimbursementArray) {
         reimbursementResolvedTd.innerHTML = reimbursement.resolved ? new Date(reimbursement.resolved).toDateString() : null;
 
 
-        var reimbursementResolverTd = document.createElement('td');
+        var reimbursementAuthorTd = document.createElement('td');
         if (reimbursement?.author?.firstName && reimbursement?.author?.lastName) {
-            reimbursementResolverTd.innerHTML = reimbursement.author.firstName + " " + reimbursement.author.lastName;
+            reimbursementAuthorTd.innerHTML = reimbursement.author.firstName + " " + reimbursement.author.lastName;
         }
 
-        var reimbursementRecieptTd = document.createElement('td');
-        if (reimbursement?.reciept) {
-            reimbursementRecieptTd.innerHTML = reimbursement.reciept;
+        let reimbursementRecieptTd = document.createElement('td');
+        let reimbursementImage = document.createElement('img');
+        reimbursementImage.style.width = "50px";
+        reimbursementImage.id = `itemPreview_${i}`;
+        if (reimbursement.recieptImage !== null) {
+            reimbursementImage.src = "data:image/png;base64," + reimbursement.recieptImage;
+            reimbursementRecieptTd.appendChild(reimbursementImage);
         }
 
         var reimbursementStatusTd = document.createElement('td');
@@ -188,40 +197,51 @@ function populateReimbursements(reimbursementArray) {
             reimbursementStatusTd.style.color = "green";
         }
 
-        var btn = document.createElement("button");
-        btn.type = 'button';
-        btn.className = 'btn btn-outline-success';
-        btn.id = `btn_approve_${i}`;
-        btn.value = 'approved';
-        btn.style.width = '80px'
-        btn.textContent = 'Approve';
-        btn.addEventListener('click', decision);
-        var btn1 = document.createElement("button");
-        btn1.type = 'button';
-        btn1.className = 'btn btn-outline-danger';
-        btn1.id = `btn_approve_${i}`;
-        btn1.value = 'denied';
-        btn1.style.width = '80px'
-        btn1.textContent = 'Deny';
-        btn1.style.marginTop = '10px';
-        btn1.addEventListener('click', decision);
-        i++;
-        let linkbreak = document.createElement("br");
-        let reimbursementApproveDecisionTd = document.createElement('td');
-        reimbursementApproveDecisionTd.appendChild(btn);
-        reimbursementApproveDecisionTd.appendChild(linkbreak);
-        reimbursementApproveDecisionTd.appendChild(btn1);
-
+        reimbursementImage.addEventListener('mousedown', previewImage);
         tr.appendChild(reimbursementIdTd);
         tr.appendChild(reimbursementAmountTd);
         tr.appendChild(reimbursementTypeTd);
         tr.appendChild(reimbursementDescriptionTd);
         tr.appendChild(reimbursementSubmittedTd);
         tr.appendChild(reimbursementResolvedTd);
-        tr.appendChild(reimbursementResolverTd);
+        tr.appendChild(reimbursementAuthorTd);
         tr.appendChild(reimbursementRecieptTd);
         tr.appendChild(reimbursementStatusTd);
-        tr.appendChild(reimbursementApproveDecisionTd);
+        if (reimbursement.status.status == "pending") {
+            var btn = document.createElement("button");
+            btn.type = 'button';
+            btn.className = 'btn btn-outline-success';
+            btn.id = `btn_approve_${i}`;
+            btn.value = 'approved';
+            btn.style.width = '80px'
+            btn.textContent = 'Approve';
+            btn.addEventListener('click', decision);
+            var btn1 = document.createElement("button");
+            btn1.type = 'button';
+            btn1.className = 'btn btn-outline-danger';
+            btn1.id = `btn_approve_${i}`;
+            btn1.value = 'denied';
+            btn1.style.width = '80px'
+            btn1.textContent = 'Deny';
+            btn1.style.marginTop = '10px';
+            btn1.addEventListener('click', decision);
+
+            i++;
+            let linkbreak = document.createElement("br");
+            let reimbursementApproveDecisionTd = document.createElement('td');
+            reimbursementApproveDecisionTd.appendChild(btn);
+            reimbursementApproveDecisionTd.appendChild(linkbreak);
+            reimbursementApproveDecisionTd.appendChild(btn1);
+            tr.appendChild(reimbursementApproveDecisionTd);
+        } else {
+            var btn2 = document.createElement("button");
+            btn2.type = 'button'
+            btn2.textContent = 'Decided';
+            btn2.className = 'btn btn-secondary';
+            var reimbursementDecidedTd = document.createElement('td');
+            reimbursementDecidedTd.appendChild(btn2);
+            tr.appendChild(reimbursementDecidedTd);
+        }
         tbody.appendChild(tr);
     }
 
@@ -230,7 +250,7 @@ function populateReimbursements(reimbursementArray) {
 
 window.addEventListener('load', onLoad);
 logoutButton.addEventListener("click", logout);
-approveFilter.addEventListener('click', approvedFilter);
-pendingFilter.addEventListener('click', approvedFilter);
-deniedFilter.addEventListener('click', approvedFilter);
+approveFilter.addEventListener('click', statusFilter);
+pendingFilter.addEventListener('click', statusFilter);
+deniedFilter.addEventListener('click', statusFilter);
 defaultFilter.addEventListener('click', showAll);

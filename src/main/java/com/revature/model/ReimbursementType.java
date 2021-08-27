@@ -12,12 +12,12 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "reimbursement_type")
 public class ReimbursementType {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "type_id")
 	private int id;
-	
+
 	@Column(name = "reimb_type", length = 20, nullable = false, unique = true)
 	private String type;
 
@@ -67,5 +67,5 @@ public class ReimbursementType {
 	public String toString() {
 		return "ReimbursementType [id=" + id + ", type=" + type + "]";
 	}
-	
+
 }

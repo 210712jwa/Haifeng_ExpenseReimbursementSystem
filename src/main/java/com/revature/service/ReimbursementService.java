@@ -1,19 +1,21 @@
 package com.revature.service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.PersistenceException;
-
 import com.revature.dao.ReimbursementDAO;
 import com.revature.dao.ReimbursementDAOImpl;
 import com.revature.dto.AddOrEditReimbursementDTO;
 import com.revature.exception.BadParameterException;
-import com.revature.exception.DatabaseException;
 import com.revature.exception.ReimbursementNotFoundException;
 import com.revature.model.Reimbursement;
-import com.revature.model.Users;
+
+import io.javalin.http.UploadedFile;
 
 public class ReimbursementService {
 
@@ -21,6 +23,11 @@ public class ReimbursementService {
 
 	public ReimbursementService() {
 		this.reimbursementDao = new ReimbursementDAOImpl();
+	}
+
+	public ReimbursementService(ReimbursementDAO mockReimbursementObject) {
+		this.reimbursementDao = mockReimbursementObject;
+
 	}
 
 	public List<Reimbursement> getAllReimbursementsFromAllUsers() throws ReimbursementNotFoundException {
@@ -48,7 +55,7 @@ public class ReimbursementService {
 	}
 
 	public void deleteReimbursementById(String reimbursementId)
-			throws PersistenceException, BadParameterException, ReimbursementNotFoundException {
+			throws Exception {
 		try {
 			int reimbId = Integer.parseInt(reimbursementId);
 			if (reimbursementDao.getReimbursementById(reimbId) != null) {
@@ -59,34 +66,34 @@ public class ReimbursementService {
 		} catch (NumberFormatException e) {
 			throw new BadParameterException("Reimbursement id is not a valid integer.");
 		} catch (PersistenceException e) {
-			throw new PersistenceException(e.getMessage());
+			throw new PersistenceException("Something wrong with the hibernate.");
 		}
 	}
 
 	public Reimbursement editReimbursementById(String reimbursementId, AddOrEditReimbursementDTO reimbursementDto)
-			throws BadParameterException, ReimbursementNotFoundException {
+			throws Exception {
 		try {
 			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != null) {
-			int reimbId = Integer.parseInt(reimbursementId);
-			if (reimbursementDao.getReimbursementById(reimbId) != null) {
-				Reimbursement reimbursement = reimbursementDao.editReimbursementById(reimbId, reimbursementDto);
-				System.out.print(reimbursement);
-				return reimbursement;
+				int reimbId = Integer.parseInt(reimbursementId);
+				if (reimbursementDao.getReimbursementById(reimbId) != null) {
+					Reimbursement reimbursement = reimbursementDao.editReimbursementById(reimbId, reimbursementDto);
+					System.out.print(reimbursement);
+					return reimbursement;
+				} else {
+					throw new ReimbursementNotFoundException("The user don't have a reimbursement with " + reimbursementId);
+				}
 			} else {
-				throw new ReimbursementNotFoundException("The user don't have a reimbursement with " + reimbursementId);
-			}
-			}else {
 				throw new BadParameterException("cannot have null value for amount and type");
 			}
 		} catch (NumberFormatException e) {
 			throw new BadParameterException("Reimbursement id is not a valid integer.");
 		} catch (PersistenceException e) {
-			throw new PersistenceException(e.getMessage());
+			throw new PersistenceException("Something wrong with hibernate");
 		}
 	}
 
 	public Reimbursement addReimbursement(String userId, AddOrEditReimbursementDTO reimbursementDto)
-			throws BadParameterException, ReimbursementNotFoundException {
+			throws Exception {
 		try {
 			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != null) {
 				int uId = Integer.parseInt(userId);
@@ -98,11 +105,12 @@ public class ReimbursementService {
 		} catch (NumberFormatException e) {
 			throw new BadParameterException("Reimbursement id is not a valid integer.");
 		} catch (PersistenceException e) {
-			throw new PersistenceException(e.getMessage());
+			throw new PersistenceException("Something wrong with hibernate.");
 		}
 	}
 
-	public Reimbursement editReimbursementStatusById(String reimbursementId, String userId, String status) throws ReimbursementNotFoundException, BadParameterException {
+	public Reimbursement editReimbursementStatusById(String reimbursementId, String userId, String status)
+			throws Exception {
 		try {
 			String statusString = status.replaceAll("^\"|\"$", "");
 			int reimbId = Integer.parseInt(reimbursementId);
@@ -110,7 +118,8 @@ public class ReimbursementService {
 			if (reimbursementDao.getReimbursementById(reimbId) != null) {
 				long now = System.currentTimeMillis();
 				Timestamp resolvedTime = new Timestamp(now);
-				Reimbursement reimbursement = reimbursementDao.editReimbursementStatusById(reimbId, uId, resolvedTime, statusString);
+				Reimbursement reimbursement = reimbursementDao.editReimbursementStatusById(reimbId, uId, resolvedTime,
+						statusString);
 				return reimbursement;
 			} else {
 				throw new ReimbursementNotFoundException("There is no reimbursement with " + reimbursementId);
@@ -130,6 +139,26 @@ public class ReimbursementService {
 		}
 		return reimbursement;
 	}
+
+	public Reimbursement addRecieptFile(String reimbursementId, UploadedFile fileInput) throws Exception {
+
+		InputStream fileContent = fileInput.component1();
+		byte[] receiptByte = new byte[fileInput.component3()];
+		int nRead;
+		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+		try {
+			int reimbId = Integer.parseInt(reimbursementId);
+			while ((nRead = fileContent.read(receiptByte, 0, receiptByte.length)) != -1) {
+				buffer.write(receiptByte, 0, nRead);
+			}
+			byte[] storeImageByte = buffer.toByteArray();
+			Reimbursement reimbursement = reimbursementDao.addRecieptFile(reimbId, storeImageByte);
+
+			return reimbursement;
+		} catch (IOException e) {
+			throw new Exception("File not accepted.");
+		} catch (Exception e) {
+			throw new Exception("Add receipt fail.");
+		}
 	}
-
-
+}

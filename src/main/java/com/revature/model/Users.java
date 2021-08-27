@@ -15,31 +15,30 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-
 @Entity
 @Table(name = "users")
 public class Users {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id")
 	private int id;
-	
+
 	@Column(name = "first_name", nullable = false, length = 100)
 	private String firstName;
-	
+
 	@Column(name = "last_name", nullable = false, length = 100)
 	private String lastName;
-	
+
 	@Column(name = "email", unique = true, length = 150)
 	private String email;
-	
+
 	@Column(name = "username", nullable = false, unique = true, length = 50)
 	private String username;
-	
+
 	@Column(name = "password", nullable = false, length = 50)
 	private String password;
-	
+
 	@ManyToOne
 	@JoinColumn(name = "user_role_id", nullable = false)
 	private UserRoles userRole;
@@ -56,7 +55,7 @@ public class Users {
 		this.username = username;
 		this.password = password;
 	}
-	
+
 	public int getId() {
 		return id;
 	}

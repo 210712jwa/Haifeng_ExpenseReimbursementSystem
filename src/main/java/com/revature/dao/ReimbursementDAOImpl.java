@@ -1,16 +1,10 @@
 package com.revature.dao;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.PersistenceException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -60,7 +54,7 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 	}
 
 	@Override
-	public void deleteReimbursementById(int reimbursementId) throws PersistenceException {
+	public void deleteReimbursementById(int reimbursementId) throws Exception {
 		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
 		Session session = sf.openSession();
 		Transaction tx = session.beginTransaction();
@@ -77,7 +71,10 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			throw new IllegalStateException(e.getMessage());
 		} catch (PersistenceException e) {
 			tx.rollback();
-			throw new PersistenceException(e.getMessage());
+			throw new PersistenceException("something wrong with hibernate");
+		}catch(Exception e) {
+			throw new Exception("Fail delete reimbursemet Dao");
+			
 		} finally {
 			if (session != null) {
 				session.close();
@@ -85,9 +82,9 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 		}
 	}
 
-
 	@Override
-	public Reimbursement editReimbursementById(int reimbursementId, AddOrEditReimbursementDTO reimbursementDto) throws PersistenceException {
+	public Reimbursement editReimbursementById(int reimbursementId, AddOrEditReimbursementDTO reimbursementDto)
+			throws Exception {
 		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
 		Session session = sf.openSession();
 		Transaction tx = session.beginTransaction();
@@ -106,7 +103,9 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			return reimbursement;
 		} catch (PersistenceException e) {
 			tx.rollback();
-			throw new PersistenceException(e.getMessage());
+			throw new PersistenceException("Something wrong with hibernate");
+		}catch(Exception e) {
+			throw new Exception("Fail edit reimbursemet Dao");
 		} finally {
 			if (session != null) {
 				session.close();
@@ -120,7 +119,8 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 		Session session = sf.openSession();
 		try {
 			String hql = "FROM Reimbursement r WHERE r.id = :reimbursementId";
-			Reimbursement reimbursement = (Reimbursement) session.createQuery(hql).setParameter("reimbursementId", reimbursementId).getSingleResult();
+			Reimbursement reimbursement = (Reimbursement) session.createQuery(hql)
+					.setParameter("reimbursementId", reimbursementId).getSingleResult();
 			return reimbursement;
 		} finally {
 			if (session != null) {
@@ -128,9 +128,10 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			}
 		}
 	}
-	
+
 	@Override
-	public Reimbursement addReimbursement(int userId, AddOrEditReimbursementDTO reimbursementDto) throws PersistenceException {
+	public Reimbursement addReimbursement(int userId, AddOrEditReimbursementDTO reimbursementDto)
+			throws Exception {
 		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
 		Session session = sf.openSession();
 		Transaction tx = session.beginTransaction();
@@ -142,7 +143,8 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			ReimbursementStatus reimbursementStatus = (ReimbursementStatus) session.createQuery(hql2).getSingleResult();
 			String hql3 = "FROM Users u WHERE u.id = :userid";
 			Users user = (Users) session.createQuery(hql3).setParameter("userid", userId).getSingleResult();
-			Reimbursement reimbursement = new Reimbursement(reimbursementDto.getAmount(), null, reimbursementDto.getDescription(), null);
+			Reimbursement reimbursement = new Reimbursement(reimbursementDto.getAmount(), null,
+					reimbursementDto.getDescription(), null);
 			reimbursement.setAuthor(user);
 			reimbursement.setType(reimbursementType);
 			reimbursement.setStatus(reimbursementStatus);
@@ -151,7 +153,10 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			return reimbursement;
 		} catch (PersistenceException e) {
 			tx.rollback();
-			throw new PersistenceException(e.getMessage());
+			throw new PersistenceException("something wrong with hibernate");
+		} catch (Exception e) {
+			tx.rollback();
+			throw new Exception("Fail edit in Dao");
 		} finally {
 			if (session != null) {
 				session.close();
@@ -160,7 +165,7 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 	}
 
 	@Override
-	public Reimbursement editReimbursementStatusById(int reimbId, int userId, Timestamp resolvedTime, String status) {
+	public Reimbursement editReimbursementStatusById(int reimbId, int userId, Timestamp resolvedTime, String status) throws Exception {
 		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
 		Session session = sf.openSession();
 		Transaction tx = session.beginTransaction();
@@ -169,7 +174,8 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			ReimbursementStatus reimbursementStatus = (ReimbursementStatus) session.createQuery(hql)
 					.setParameter("status", status).getSingleResult();
 			String hql2 = "FROM Reimbursement r WHERE r.id = :reimbursementId";
-			Reimbursement reimbursement = (Reimbursement) session.createQuery(hql2).setParameter("reimbursementId", reimbId).getSingleResult();
+			Reimbursement reimbursement = (Reimbursement) session.createQuery(hql2)
+					.setParameter("reimbursementId", reimbId).getSingleResult();
 			System.out.println(reimbursement);
 			String hql3 = "FROM Users u WHERE u.id = :userId";
 			Users user = (Users) session.createQuery(hql3).setParameter("userId", userId).getSingleResult();
@@ -179,14 +185,17 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			session.persist(reimbursement);
 			tx.commit();
 			return reimbursement;
-		}catch(Exception e) {
-			e.printStackTrace();
-		}finally {
+		}catch(PersistenceException e) {
+			tx.rollback();
+			throw new PersistenceException("something wrong with hibernate");
+		} catch (Exception e) {
+			tx.rollback();
+			throw new Exception("Fail edit in Dao");
+		} finally {
 			if (session != null) {
 				session.close();
 			}
 		}
-		return null;
 	}
 
 	@Override
@@ -198,6 +207,32 @@ public class ReimbursementDAOImpl implements ReimbursementDAO {
 			String hql = "FROM Reimbursement r WHERE r.status.status = :status";
 			reimbursement = session.createQuery(hql).setParameter("status", status).getResultList();
 			return reimbursement;
+		} finally {
+			if (session != null) {
+				session.close();
+			}
+		}
+	}
+
+	@Override
+	public Reimbursement addRecieptFile(int reimbId, byte[] storeImageByte) throws Exception {
+		SessionFactory sf = SessionFactorySingleton.getSessionFactory();
+		Session session = sf.openSession();
+		Transaction tx = session.beginTransaction();
+		try {
+			String hql = "FROM Reimbursement r WHERE r.id = :id";
+			Reimbursement reimbursement = (Reimbursement) session.createQuery(hql).setParameter("id", reimbId)
+					.getSingleResult();
+			reimbursement.setRecieptImage(storeImageByte);
+			session.persist(reimbursement);
+			tx.commit();
+			return reimbursement;
+		}catch(PersistenceException e) {
+			tx.rollback();
+			throw new PersistenceException("something wrong with hibernate");
+		} catch (Exception e) {
+			tx.rollback();
+			throw new Exception("Add image fail in DAO");
 		} finally {
 			if (session != null) {
 				session.close();

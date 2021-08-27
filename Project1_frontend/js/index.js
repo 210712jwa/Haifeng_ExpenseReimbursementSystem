@@ -4,42 +4,42 @@ let passwordInput = document.getElementById('password');
 
 function login(event) {
 
-        event.preventDefault();
+    event.preventDefault();
 
-        const loginInfo = {
-            'username': usernameInput.value,
-            'password': passwordInput.value
-        }
+    const loginInfo = {
+        'username': usernameInput.value,
+        'password': passwordInput.value
+    }
 
-        fetch("http://127.0.0.1:7000/login", {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(loginInfo)
-        }).then((response) => {
-            if (response.status === 400) {
-                displayInvalidLogin();
-            } else if (response.status === 401) {
-                displayInvalidLogin();
-            } else if (response.status === 200) {
-                return response.json();
-            }
-        }).then((user) => {
-            return fetch(`http://127.0.0.1:7000/login/${user.id}`, {
-                method: "GET",
-                credentials: "include"
-        });
-        }).then((response) => {
+    fetch("http://127.0.0.1:7000/login", {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(loginInfo)
+    }).then((response) => {
+        if (response.status === 400) {
+            displayInvalidLogin();
+        } else if (response.status === 401) {
+            displayInvalidLogin();
+        } else if (response.status === 200) {
             return response.json();
-        }).then((userRole) => {
-            if(userRole === "employee") {
-                window.location.href = "/viewreimbursement.html";
-            }else if(userRole === "finance manager") {
-                window.location.href = "/adminreimbursement.html";
-            }
-        })
+        }
+    }).then((user) => {
+        return fetch(`http://127.0.0.1:7000/login/${user.id}`, {
+            method: "GET",
+            credentials: "include"
+        });
+    }).then((response) => {
+        return response.json();
+    }).then((userRole) => {
+        if (userRole === "employee") {
+            window.location.href = "/viewreimbursement.html";
+        } else if (userRole === "finance manager") {
+            window.location.href = "/adminreimbursement.html";
+        }
+    })
 };
 
 
@@ -53,27 +53,27 @@ function displayInvalidLogin() {
     }, 1000);
 }
 
-function checkIfUserCurrentlyLogin(event){
+function checkIfUserCurrentlyLogin(event) {
     fetch("http://127.0.0.1:7000/currentUser", {
-        method: "GET",  
+        method: "GET",
         credentials: "include"
     }).then((response) => {
-        if(response.status === 401){
-            
-        }else if(response.status == 200){
-           return response.json();
+        if (response.status === 401) {
+
+        } else if (response.status == 200) {
+            return response.json();
         }
     }).then((user) => {
         return fetch(`http://127.0.0.1:7000/login/${user.id}`, {
             method: "GET",
             credentials: "include"
-    });
+        });
     }).then((response) => {
         return response.json();
     }).then((userRole) => {
-        if(userRole === "employee") {
+        if (userRole === "employee") {
             window.location.href = "/viewreimbursement.html";
-        }else if(userRole === "finance manager") {
+        } else if (userRole === "finance manager") {
             window.location.href = "/adminreimbursement.html";
         }
     });

@@ -19,64 +19,63 @@ import io.javalin.Javalin;
 import io.javalin.http.Handler;
 
 public class AdminReimbursementController implements Controller {
-	
+
 	private ReimbursementService reimbursementService;
-	
+
 	public AdminReimbursementController() {
 		this.reimbursementService = new ReimbursementService();
 	}
-	
+
 	private Handler getAllReimbursementFromAllUserHandler = (ctx) -> {
 		HttpSession httpSession = ctx.req.getSession();
 		Users user = (Users) httpSession.getAttribute("currentUser");
-		if(user != null && user.getUserRole().getRole().equals("finance manager")) {
-			if(ctx.queryParam("status") != null) {
+		if (user != null && user.getUserRole().getRole().equals("finance manager")) {
+			if (ctx.queryParam("status") != null) {
 				String status = ctx.queryParam("status");
 				List<Reimbursement> reimbursement = reimbursementService.filterReimbursementByStatus(status);
 				ctx.json(reimbursement);
 				ctx.status(200);
-			}else if(ctx.queryParam("status") == null){
+			} else if (ctx.queryParam("status") == null) {
 				List<Reimbursement> reimbursement = new ArrayList<>();
 				reimbursement = reimbursementService.getAllReimbursementsFromAllUsers();
 				ctx.json(reimbursement);
 				ctx.status(200);
-			}else {
-				ctx.status(500);
-			}	
-		}else if(user != null) {
+			} 
+		} else if (user != null) {
 			ctx.json(new MessageDTO("Unauthorized action, not a manager"));
 			ctx.status(403);
-		}else if(user == null){
+		} else if (user == null) {
 			ctx.json(new MessageDTO("Unauthorized action, please login"));
 			ctx.status(401);
 		}
 	};
-	
+
 	private Handler decideUserReimbursemenStatus = (ctx) -> {
 		HttpSession httpSession = ctx.req.getSession();
 		Users user = (Users) httpSession.getAttribute("currentUser");
-		if(user != null && user.getUserRole().getRole().equals("finance manager")) {
+		if (user != null && user.getUserRole().getRole().equals("finance manager")) {
 			String status = ctx.body();
 			String reimbursementId = ctx.pathParam("reimbursementid");
 			String userId = ctx.pathParam("userid");
-			Reimbursement reimbursement = reimbursementService.editReimbursementStatusById(reimbursementId, userId, status);
+			Reimbursement reimbursement = reimbursementService.editReimbursementStatusById(reimbursementId, userId,
+					status);
 			ctx.json(reimbursement);
 			ctx.status(200);
-		}else if(user == null){
+		} else if (user == null) {
 			ctx.json(new MessageDTO("Unauthorized action, please login"));
 			ctx.status(401);
 		}
 	};
-	
+
 	private Handler filterReimbursementByStatus = (ctx) -> {
 		HttpSession httpSession = ctx.req.getSession();
 		Users user = (Users) httpSession.getAttribute("currentUser");
-		if(user != null && user.getUserRole().getRole().equals("finance manager")) {
+		if (user != null && user.getUserRole().getRole().equals("finance manager")) {
 			String status = ctx.body();
 			List<Reimbursement> reimbursement = reimbursementService.filterReimbursementByStatus(status);
 			ctx.json(reimbursement);
 			ctx.status(200);
-		}else if(user == null){
+		} else if (user == null) {
 			ctx.json(new MessageDTO("Unauthorized action, please login"));
 			ctx.status(401);
 		}

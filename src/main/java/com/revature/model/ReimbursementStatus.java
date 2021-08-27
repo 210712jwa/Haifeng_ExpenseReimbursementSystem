@@ -1,6 +1,5 @@
 package com.revature.model;
 
-
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -13,12 +12,12 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "reimbursement_status")
 public class ReimbursementStatus {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "status_id")
 	private int id;
-	
+
 	@Column(name = "reimb_status", length = 20, nullable = false)
 	private String status;
 
@@ -68,5 +67,5 @@ public class ReimbursementStatus {
 	public String toString() {
 		return "ReimbursementStatus [id=" + id + ", status=" + status + "]";
 	}
-	
+
 }
