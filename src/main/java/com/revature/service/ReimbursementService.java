@@ -87,7 +87,7 @@ public class ReimbursementService {
 
 	public Reimbursement addReimbursement(String userId, AddOrEditReimbursementDTO reimbursementDto) throws Exception {
 		try {
-			if (reimbursementDto.getAmount() != 0 && reimbursementDto.getType() != "") {
+			if (reimbursementDto.getAmount() > 0 && !reimbursementDto.getType().trim().equals("")) {
 				int uId = Integer.parseInt(userId);
 				Reimbursement reimbursement = reimbursementDao.addReimbursement(uId, reimbursementDto);
 				return reimbursement;

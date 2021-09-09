@@ -31,17 +31,14 @@ public class LoginService {
 		if (loginDto.getPassword().equals("")) {
 			throw new BadParameterException("Password cannot be blank.");
 		}
-		try {
-			PasswordHashing passAuthen = PasswordHashing.getInstance();
-			String newPassword = passAuthen.getSecurePassword(loginDto.getPassword());
-			loginDto.setPassword(newPassword);
-			Users user = userDao.getUserByUsernameAndPassword(loginDto);
-			if (user == null) {
-				throw new InvalidLoginException("You provide incorrect credential when attempting to log in");
-			}
-			return user;
-		} catch (Exception e) {
-			throw new Exception("Login fail");
+
+		PasswordHashing passAuthen = PasswordHashing.getInstance();
+		String newPassword = passAuthen.getSecurePassword(loginDto.getPassword());
+		loginDto.setPassword(newPassword);
+		Users user = userDao.getUserByUsernameAndPassword(loginDto);
+		if (user == null) {
+			throw new InvalidLoginException("You provide incorrect credential when attempting to log in");
 		}
+		return user;
 	}
 }

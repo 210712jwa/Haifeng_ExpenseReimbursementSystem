@@ -5,7 +5,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.*;
 
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,15 +48,18 @@ public class ReimbursementServiceUnitTest {
 	private static Users user2;
 	private static Users admin;
 
-	Timestamp resolveTimestamp1;
-	Timestamp resolveTimestamp2;
+	private Timestamp resolveTimestamp1;
+	private Timestamp resolveTimestamp2;
+	private Timestamp submittedTime;
 
 	@Before
 	public void setUp() throws Exception {
 		this.reimbursementDao = mock(ReimbursementDAO.class);
 		this.reimbursementService = new ReimbursementService(reimbursementDao);
 		employee = new UserRoles("employee");
+		employee.setId(2);
 		financeManager = new UserRoles("finance manager");
+		financeManager.setId(1);
 		pending = new ReimbursementStatus("pending");
 		pending.setId(1);
 		approved = new ReimbursementStatus("approved");
@@ -74,6 +76,7 @@ public class ReimbursementServiceUnitTest {
 		other.setId(4);
 		resolveTimestamp1 = Timestamp.valueOf("2020-10-22 19:30:23.168");
 		resolveTimestamp2 = Timestamp.valueOf("2020-11-22 16:32:26.238");
+		submittedTime = Timestamp.valueOf("2020-08-22 16:32:26.238");
 		user = new Users("userFirst", "userLast", "userEmail@email.com", "userUsername", "userPassword");
 		user.setUserRole(employee);
 		user.setId(2);
@@ -82,7 +85,7 @@ public class ReimbursementServiceUnitTest {
 		user.setId(3);
 		admin = new Users("adminFirst", "adminLast", "adminEmail@email.com", "adminUsername", "adminPassword");
 		admin.setUserRole(financeManager);
-		user.setId(1);
+		admin.setId(1);
 	}
 
 	@BeforeClass
@@ -262,23 +265,28 @@ public class ReimbursementServiceUnitTest {
 		Reimbursement reimbursement1 = new Reimbursement(2000, null, "hey", null);
 		reimbursement1.setId(10);
 		reimbursement1.setAuthor(user);
-		reimbursement1.setResolver(admin);
 		reimbursement1.setType(travel);
-		reimbursement1.setStatus(approved);
+		reimbursement1.setStatus(pending);
+		reimbursement1.setSubmitTimestamp(null);
+		reimbursement1.setNow(0);
+		reimbursement1.setSubmitted(submittedTime);
+		
 		when(reimbursementDao.getReimbursementById(eq(10))).thenReturn(reimbursement1);
 		
-		Reimbursement newReimb = new Reimbursement(reimbDto.getAmount(), null, reimbDto.getDescription(), null);
-		newReimb.setId(10);
-		newReimb.setAuthor(user);
-		newReimb.setType(lodging);
-		
-		when(reimbursementDao.editReimbursementById(eq(10),eq(reimbDto))).thenReturn(newReimb);
+		reimbursement1.setAmount(reimbDto.getAmount());
+		reimbursement1.setDescription(reimbDto.getDescription());;
+		reimbursement1.setType(lodging);;
+		when(reimbursementDao.editReimbursementById(eq(10),eq(reimbDto))).thenReturn(reimbursement1);
 		Reimbursement actual = reimbursementService.editReimbursementById("10", reimbDto);
 		
 		Reimbursement expectReimb = new Reimbursement(100.23, null, "hello", null);
 		expectReimb.setId(10);
 		expectReimb.setAuthor(user);
 		expectReimb.setType(lodging);
+		expectReimb.setStatus(pending);
+		expectReimb.setSubmitTimestamp(null);
+		expectReimb.setNow(0);
+		expectReimb.setSubmitted(submittedTime);
 
 		assertEquals(actual, expectReimb);
 	}
@@ -345,13 +353,15 @@ public class ReimbursementServiceUnitTest {
 		reimbursementMock.setAmount(reimbDto.getAmount());
 		reimbursementMock.setDescription(reimbDto.getDescription());
 		reimbursementMock.setType(lodging);
-		when(reimbursementDao.addReimbursement(eq(10), reimbDto)).thenReturn(reimbursementMock);
+		reimbursementMock.setSubmitted(submittedTime);
+		when(reimbursementDao.addReimbursement(eq(10), eq(reimbDto))).thenReturn(reimbursementMock);
 		
 		Reimbursement actual = reimbursementService.addReimbursement("10", reimbDto);
 		Reimbursement expected = new Reimbursement();
 		expected.setAmount(100.23);
 		expected.setDescription("hello");
 		expected.setType(lodging);
+		expected.setSubmitted(submittedTime);
 		
 		assertEquals(actual, expected);
 		
@@ -403,21 +413,29 @@ public class ReimbursementServiceUnitTest {
 	
 	@Test
 	public void test_edit_reimbursement_status_by_id_positive() throws Exception {
-			Reimbursement reimbursementMock = new Reimbursement(100, resolveTimestamp1 ,"hello", null);
+			Reimbursement reimbursementMock = new Reimbursement(100, null ,"hello", null);
 			reimbursementMock.setId(10);
 			reimbursementMock.setAuthor(user);
 			reimbursementMock.setResolver(admin);
 			reimbursementMock.setStatus(approved);
+			reimbursementMock.setNow(0);
+			reimbursementMock.setSubmitTimestamp(null);
+			reimbursementMock.setSubmitted(submittedTime);
 			
 			when(reimbursementDao.getReimbursementById(eq(10))).thenReturn(reimbursementMock);
-			when(reimbursementDao.editReimbursementStatusById(eq(10), eq(1), resolveTimestamp1, eq("approved"))).thenReturn(reimbursementMock);
+			when(reimbursementDao.editReimbursementStatusById(eq(10), eq(1), any(), eq("approved"))).thenReturn(reimbursementMock);
 		
 			Reimbursement actual = reimbursementService.editReimbursementStatusById("10", "1", "approved");
-			Reimbursement reimbursementExpected = new Reimbursement(100, resolveTimestamp1 ,"hello", null);
+			Reimbursement reimbursementExpected = new Reimbursement(100, null ,"hello", null);
 			reimbursementExpected.setId(10);
 			reimbursementExpected.setAuthor(user);
 			reimbursementExpected.setResolver(admin);
 			reimbursementExpected.setStatus(approved);
+			reimbursementExpected.setNow(0);
+			reimbursementExpected.setSubmitTimestamp(null);
+			reimbursementExpected.setSubmitted(submittedTime);
+			
+			
 			
 			assertEquals(actual, reimbursementExpected);
 	}

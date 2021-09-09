@@ -235,8 +235,8 @@ function populateReimbursements(reimbursementArray) {
             tr.appendChild(reimbursementApproveDecisionTd);
         } else {
             var btn2 = document.createElement("button");
-            btn2.type = 'button'
-            btn2.textContent = 'Decided';
+            btn2.type = 'button';
+            btn2.textContent = 'Processed';
             btn2.className = 'btn btn-secondary';
             var reimbursementDecidedTd = document.createElement('td');
             reimbursementDecidedTd.appendChild(btn2);
